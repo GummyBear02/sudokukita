@@ -14,64 +14,110 @@
 
 /* a valid solved 4x4 board (2x2 blocks) */
 int base_solved[N][N] = {
-  {1,2,3,4},
-  {3,4,1,2},
-  {2,1,4,3},
-  {4,3,2,1}
+  {1, 2, 3, 4},
+  {3, 4, 1, 2},
+  {2, 1, 4, 3},
+  {4, 3, 2, 1}
 };
 
 void copy_board(int dst[N][N], int src[N][N]) {
-  for (int i=0;i<N;i++) for (int j=0;j<N;j++) dst[i][j]=src[i][j];
-}
-
-void print_board(int a[N][N]) {
-  puts("   1 2   3 4");
-  puts("  +-----+-----+");
-  for (int i=0;i<N;i++) {
-    printf("%d |", i+1);
-    for (int j=0;j<N;j++) {
-      if (a[i][j]==0) putchar('.');
-      else putchar('0' + a[i][j]);
-      if (j==1) putchar('|');
-      else if (j!=N-1) putchar(' ');
+  for (int row = 0; row < N; row++) {
+    for (int col = 0; col < N; col++) {
+      dst[row][col] = src[row][col];
     }
-    printf("|\n");
-    if (i==1) puts("  +-----+-----+");
   }
-  puts("  +-----+-----+");
 }
 
-/* validity check for placing v at r,c */
-int is_valid(int a[N][N], int r, int c, int v) {
-  for (int i=0;i<N;i++) {
-    if (a[r][i]==v) return 0;
-    if (a[i][c]==v) return 0;
+/**
+ * Print a 4x4 Sudoku board in a human-readable format.
+ * @param a The 4x4 Sudoku board to print.
+ */
+void print_board(int a[N][N]) {
+  puts("   1   2   3   4");
+  puts("  +-------+-------+");
+  
+  for (int i=0; i<N; i++) {
+    printf("%d |", i+1);
+    
+    for (int j=0; j<N; j++) {
+      if (a[i][j] == 0) {
+        printf("   .   "); 
+      } else {
+        printf("%4d", a[i][j]); 
+      }
+
+      if (j == 1) {
+        printf(" |"); 
+      } else if (j != N-1) {
+        printf("   ");
+      }
+    }
+    printf("\n");
+    
+    if (i==1) {
+      puts("  +-------+-------+");
+    }
   }
-  int br = (r / BLOCK) * BLOCK;
-  int bc = (c / BLOCK) * BLOCK;
-  for (int i=0;i<BLOCK;i++) for (int j=0;j<BLOCK;j++)
-    if (a[br+i][bc+j] == v) return 0;
+  puts("  +-------+-------+");
+}
+
+/**
+ * Check if it's valid to place a value v at position (r,c) on the Sudoku board a.
+ * @param a The Sudoku board to check.
+ * @param r The row of the position to check.
+ * @param c The column of the position to check.
+ * @param v The value to check.
+ * @return 1 if it's valid, 0 otherwise.
+ */
+int is_valid(int a[N][N], int r, int c, int v) {
+  // check row
+  for (int i=0; i<N; i++) {
+    if (a[r][i] == v) return 0;
+  }
+
+  // check column
+  for (int i=0; i<N; i++) {
+    if (a[i][c] == v) return 0;
+  }
+
+  // check block
+  int block_row = (r / BLOCK) * BLOCK;
+  int block_col = (c / BLOCK) * BLOCK;
+  for (int i=0; i<BLOCK; i++) {
+    for (int j=0; j<BLOCK; j++) {
+      if (a[block_row+i][block_col+j] == v) return 0;
+    }
+  }
+
   return 1;
 }
 
 /* solver that counts solutions up to limit */
-int solve_count_rec(int a[N][N], int limit, int *count) {
+int solve_count_recursive(int board[N][N], int limit, int *count) {
   if (*count >= limit) return *count;
-  int r=-1,c=-1;
-  for (int i=0;i<N;i++){
-    for (int j=0;j<N;j++){
-      if (a[i][j]==0) { r=i; c=j; goto found; }
+
+  int row = -1, col = -1;
+  for (int i=0; i<N; i++) {
+    for (int j=0; j<N; j++) {
+      if (board[i][j] == 0) { row = i; col = j; break; }
     }
+    if (row != -1) break;
   }
-found:
-  if (r==-1) { (*count)++; return *count; }
+
+  if (row == -1) { 
+    (*count)++; 
+    return *count; 
+  }
 
   for (int v=1; v<=N; v++) {
-    if (is_valid(a,r,c,v)) {
-      a[r][c]=v;
-      solve_count_rec(a, limit, count);
-      a[r][c]=0;
-      if (*count >= limit) return *count;
+    if (is_valid(board, row, col, v)) {
+      board[row][col] = v;
+      solve_count_recursive(board, limit, count);
+      board[row][col] = 0;
+      
+      if (*count >= limit) {
+        return *count;
+      }
     }
   }
   return *count;
@@ -81,7 +127,7 @@ int count_solutions(int a[N][N], int limit) {
   int tmp[N][N];
   copy_board(tmp, a);
   int cnt = 0;
-  solve_count_rec(tmp, limit, &cnt);
+  solve_count_recursive(tmp, limit, &cnt);
   return cnt;
 }
 
