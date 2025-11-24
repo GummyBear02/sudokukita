@@ -33,32 +33,20 @@ void copy_board(int dst[N][N], int src[N][N]) {
  * @param a The 4x4 Sudoku board to print.
  */
 void print_board(int a[N][N]) {
-  puts("   1   2   3   4");
-  puts("  +-------+-------+");
-  
-  for (int i=0; i<N; i++) {
+  puts("   1 2   3 4");
+  puts("  +-----+-----+");
+  for (int i=0;i<N;i++) {
     printf("%d |", i+1);
-    
-    for (int j=0; j<N; j++) {
-      if (a[i][j] == 0) {
-        printf("   .   "); 
-      } else {
-        printf("%4d", a[i][j]); 
-      }
-
-      if (j == 1) {
-        printf(" |"); 
-      } else if (j != N-1) {
-        printf("   ");
-      }
+    for (int j=0;j<N;j++) {
+      if (a[i][j]==0) putchar('.');
+      else putchar('0' + a[i][j]);
+      if (j==1) putchar('|');
+      else if (j!=N-1) putchar(' ');
     }
-    printf("\n");
-    
-    if (i==1) {
-      puts("  +-------+-------+");
-    }
+    printf("|\n");
+    if (i==1) puts("  +-----+-----+");
   }
-  puts("  +-------+-------+");
+  puts("  +-----+-----+");
 }
 
 /**
