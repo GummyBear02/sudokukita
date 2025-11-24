@@ -1,7 +1,11 @@
 /*
  * 4x4 Sudoku generator + interactive player
- * Compile: gcc -O2 -Wall -Wextra '.\sudoku_4x4.c' -o .\sudoku.exe
- * Run:     ./sudoku.exe 6   (arg = jumlah blanks, default 6)
+ * Compile: 
+ * PowerShell: 
+ * gcc -O2 -Wall -Wextra '.\sudoku_4x4.c' -o .\sudoku.exe
+ * 
+ * Run:    
+ * ./sudoku.exe 6   (arg = jumlah blanks, default 6)
  */
 
 #include <stdio.h>
