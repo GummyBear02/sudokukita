@@ -29,23 +29,51 @@ void copy_board(int dst[N][N], int src[N][N]) {
 }
 
 /**
- * Print a 4x4 Sudoku board in a human-readable format.
+ * Prints a 4x4 Sudoku board in a human-readable format.
+ * The board is displayed with row and column numbers,
+ * and the values are displayed with the given value,
+ * or a '.' if the value is 0.
+ * A '+' is displayed at the top and bottom of the board,
+ * and a '|' is displayed at the end of each row.
+ * A '+' is also displayed in the middle of the board,
+ * separating the two 2x2 blocks.
  * @param a The 4x4 Sudoku board to print.
  */
 void print_board(int a[N][N]) {
+  /* Print the top line of the board */
   puts("   1 2   3 4");
   puts("  +-----+-----+");
-  for (int i=0;i<N;i++) {
+
+  /* Print each row of the board */
+  for (int i=0; i<N; i++) {
     printf("%d |", i+1);
-    for (int j=0;j<N;j++) {
-      if (a[i][j]==0) putchar('.');
-      else putchar('0' + a[i][j]);
-      if (j==1) putchar('|');
-      else if (j!=N-1) putchar(' ');
+
+    /* Print each value in the row */
+    for (int j=0; j<N; j++) {
+      /* If the value is 0, print a '.', otherwise print the value */
+      if (a[i][j] == 0) { 
+        putchar('.');
+      }
+      else { 
+        putchar('0' + a[i][j]);
+      }
+      
+      /* If we're not at the end of the row, print a space */
+      if (j != N-1 ) {
+        putchar(' ');
+      }
+      
+      /* If we're at the middle of the row, print a '|' */
+      if ( j == 1 ) {
+        putchar('|');
+      }
     }
     printf("|\n");
+
+    /* If we're at the middle of the board, print a '+' */
     if (i==1) puts("  +-----+-----+");
   }
+  /* Print the bottom line of the board */
   puts("  +-----+-----+");
 }
 
