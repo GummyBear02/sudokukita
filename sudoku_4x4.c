@@ -147,18 +147,10 @@ int is_valid(int a[N][N], int r, int c, int v) {
   return 1;
 }
 
-/**
- * A recursive solver that counts solutions up to a given limit.
- * @param board The Sudoku board to solve.
- * @param limit The maximum number of solutions to count.
- * @param count A pointer to an integer that stores the count of solutions.
- * @return The count of solutions (up to the limit).
- */
+/* solver that counts solutions up to limit */
 int solve_count_recursive(int board[N][N], int limit, int *count) {
-  /* If the count has already reached the limit, stop counting */
   if (*count >= limit) return *count;
 
-  /* Find an empty cell in the board */
   int row = -1, col = -1;
   for (int i=0; i<N; i++) {
     for (int j=0; j<N; j++) {
@@ -167,13 +159,11 @@ int solve_count_recursive(int board[N][N], int limit, int *count) {
     if (row != -1) break;
   }
 
-  /* If all cells are filled, increment the count */
   if (row == -1) { 
     (*count)++; 
     return *count; 
   }
 
-  /* Try all possible values for the empty cell */
   for (int v=1; v<=N; v++) {
     if (is_valid(board, row, col, v)) {
       board[row][col] = v;
@@ -188,6 +178,25 @@ int solve_count_recursive(int board[N][N], int limit, int *count) {
   return *count;
 }
 
+/**
+ * Count the number of solutions to the Sudoku board, up to limit.
+ *
+ * This function works by making a temporary copy of the Sudoku board,
+ * and then calling solve_count_recursive to do the actual counting.
+ *
+ * The solve_count_recursive function is a recursive function that tries
+ * placing each valid value in each empty cell of the board, and then
+ * recursively tries to fill in the rest of the board. If the board
+ * is completely filled, it increments the solution count.
+ *
+ * The limit parameter is used to stop counting solutions once we've found
+ * the desired number of solutions. This is useful if we only want to know
+ * if there is one solution, or if there are multiple solutions.
+ *
+ * @param a The Sudoku board to count solutions for.
+ * @param limit The maximum number of solutions to count.
+ * @return The number of solutions found, up to limit.
+ */
 int count_solutions(int a[N][N], int limit) {
   int tmp[N][N];
   copy_board(tmp, a);
@@ -198,142 +207,164 @@ int count_solutions(int a[N][N], int limit) {
   return cnt;
 }
 
-/* simple transformations that preserve solution validity */
-void swapRows(int board[N][N], int row1, int row2) {
-  for (int col = 0; col < N; col++) {
-    int temp = board[row1][col];
-    board[row1][col] = board[row2][col];
-    board[row2][col] = temp;
-  }
-}
-
-void swapCols(int board[N][N], int col1, int col2) {
-  for (int row = 0; row < N; row++) {
-    int temp = board[row][col1];
-    board[row][col1] = board[row][col2];
-    board[row][col2] = temp;
-  }
-}
-
-void transposeBoard(int board[N][N]) {
-  for (int row = 0; row < N; row++) {
-    for (int col = row + 1; col < N; col++) {
-      int temp = board[row][col];
-      board[row][col] = board[col][row];
-      board[col][row] = temp;
-    }
-  }
-}
-
-void swapRowBlocks(int board[N][N], int block1, int block2) {
-  for (int i = 0; i < BLOCK; i++) {
-    swapRows(board, block1 * BLOCK + i, block2 * BLOCK + i);
-  }
-}
-
-void swapColBlocks(int board[N][N], int block1, int block2) {
-  for (int i = 0; i < BLOCK; i++) {
-    swapCols(board, block1 * BLOCK + i, block2 * BLOCK + i);
+/**
+ * Swap two rows of the Sudoku board.
+ *
+ * This function takes two row indices, r1 and r2, and swaps the
+ * corresponding rows of the Sudoku board. This transformation does
+ * not change the validity of the Sudoku solution.
+ *
+ * @param a The Sudoku board to modify.
+ * @param r1 The index of the first row to swap.
+ * @param r2 The index of the second row to swap.
+ */
+void swap_rows(int a[N][N], int r1, int r2) {
+  for (int c = 0; c < N; c++) { /* loop over all columns */
+    int t = a[r1][c]; /* save the value at row r1, col c */
+    a[r1][c] = a[r2][c]; /* set the value at row r1, col c to the value at row r2, col c */
+    a[r2][c] = t; /* set the value at row r2, col c to the saved value */
   }
 }
 
 /**
- * Randomly transforms a Sudoku board in order to generate a unique
- * puzzle. The transformations are chosen randomly from the following
- * set: swapping two rows in the same block, swapping two columns in
- * the same block, swapping two blocks of rows, swapping two blocks of
- * columns, transposing the board. The number of transformations is
- * fixed at 50.
- * @param board The Sudoku board to transform.
+ * Swap two columns of the Sudoku board.
+ *
+ * This function takes two column indices, c1 and c2, and swaps the
+ * corresponding columns of the Sudoku board. This transformation does
+ * not change the validity of the Sudoku solution.
+ *
+ * @param a The Sudoku board to modify.
+ * @param c1 The index of the first column to swap.
+ * @param c2 The index of the second column to swap.
  */
-void randomizeSolution(int board[N][N]) {
-  const int iterations = 50;
-  const int transformations = 5;
+void swap_cols(int a[N][N], int c1, int c2) {
+  /* loop over all rows */
+  for (int r = 0; r < N; r++) {
+    /* save the value at row r, col c1 */
+    int t = a[r][c1];
+    /* set the value at row r, col c1 to the value at row r, col c2 */
+    a[r][c1] = a[r][c2];
+    /* set the value at row r, col c2 to the saved value */
+    a[r][c2] = t;
+  }
+}
 
-  for (int iteration = 0; iteration < iterations; iteration++) {
-    int transformation = rand() % transformations;
-
-    switch (transformation) {
-      /* 
-       * Swap two rows in the same block.
-       * The block is chosen randomly, and the two rows are chosen
-       * randomly from within that block.
-       */
-      case 0: {
-        int block = rand() % BLOCK;
-        int row1 = block * BLOCK + rand() % BLOCK;
-        int row2 = block * BLOCK + rand() % BLOCK;
-
-        if (row1 != row2) {
-          swapRows(board, row1, row2);
-        }
-        break;
-      }
-
-      /* 
-       * Swap two columns in the same block.
-       * The block is chosen randomly, and the two columns are chosen
-       * randomly from within that block.
-       */
-      case 1: {
-        int block = rand() % BLOCK;
-        int col1 = block * BLOCK + rand() % BLOCK;
-        int col2 = block * BLOCK + rand() % BLOCK;
-
-        if (col1 != col2) {
-          swapCols(board, col1, col2);
-        }
-        break;
-      }
-
-      /* 
-       * Swap two blocks of rows.
-       * The two blocks are chosen randomly, and all rows in the first
-       * block are swapped with all rows in the second block.
-       */
-      case 2: {
-        int block1 = rand() % BLOCK;
-        int block2 = rand() % BLOCK;
-
-        if (block1 != block2) {
-          swapRowBlocks(board, block1, block2);
-        }
-        break;
-      }
-
-      /* 
-       * Swap two blocks of columns.
-       * The two blocks are chosen randomly, and all columns in the first
-       * block are swapped with all columns in the second block.
-       */
-      case 3: {
-        int block1 = rand() % BLOCK;
-        int block2 = rand() % BLOCK;
-
-        if (block1 != block2) {
-          swapColBlocks(board, block1, block2);
-        }
-        break;
-      }
-
-      /* 
-       * Transpose the board.
-       * This transformation swaps the rows and columns of the board.
-       */
-      case 4: {
-        if (rand() % 3 == 0) {
-          transposeBoard(board);
-        }
-        break;
-      }
-
-      /* 
-       * No transformation is done for this iteration.
-       */
-      default:
-        break;
+/**
+ * Transpose a Sudoku board.
+ *
+ * This function takes a Sudoku board and transposes it.
+ * Transposing a Sudoku board means swapping the rows and columns.
+ * The resulting board is a valid Sudoku board, but it is not
+ * necessarily a solution to the Sudoku puzzle.
+ *
+ * @param a The Sudoku board to transpose.
+ */
+void transpose_board(int a[N][N]) {
+  /* loop over all rows and columns */
+  for (int i = 0; i < N; i++) {
+    for (int j = i+1; j < N; j++) { /* loop only over upper triangle */
+      int t = a[i][j]; /* save the value at row i, col j */
+      
+      a[i][j] = a[j][i]; /* set the value at row i, col j to the value at row j, col i */
+      a[j][i] = t; /* set the value at row j, col i to the saved value */
     }
   }
+}
+
+/**
+ * Swap two blocks of rows in the Sudoku board.
+ *
+ * This function takes a Sudoku board and two block indices, b1 and b2,
+ * and swaps the corresponding blocks of rows in the board. A block
+ * of rows is a set of contiguous rows that are the same size
+ * as the block size. The block size is defined as a constant
+ * BLOCK.
+ *
+ * For example, if the block size is 2, then the block of rows
+ * starting at index 0 consists of the rows at indices 0 and 1.
+ * The block of rows starting at index 2 consists of the rows at
+ * indices 2 and 3.
+ *
+ * @param a The Sudoku board to modify.
+ * @param b1 The index of the first block of rows to swap.
+ * @param b2 The index of the second block of rows to swap.
+ */
+void swap_row_blocks(int a[N][N], int b1, int b2) {
+  /* loop over each row in the block */
+  for (int i = 0 ; i < BLOCK; i++) {
+    /* swap the row at index b1*BLOCK + i with the row at index b2*BLOCK + i */
+    swap_rows(a, b1 * BLOCK + i, b2 * BLOCK + i);
+  }
+}
+
+/**
+ * Swap two blocks of columns in the Sudoku board.
+ *
+ * This function takes a Sudoku board and two block indices, b1 and b2,
+ * and swaps the corresponding blocks of columns in the board. A block
+ * of columns is a set of contiguous columns that are the same size
+ * as the block size. The block size is defined as a constant
+ * BLOCK.
+ *
+ * For example, if the block size is 2, then the block of columns
+ * starting at index 0 consists of the columns at indices 0 and 1.
+ * The block of columns starting at index 2 consists of the columns at
+ * indices 2 and 3.
+ *
+ * @param a The Sudoku board to modify.
+ * @param b1 The index of the first block of columns to swap.
+ * @param b2 The index of the second block of columns to swap.
+ */
+void swap_col_blocks(int a[N][N], int b1, int b2) {
+  /* loop over each column in the block */
+  for (int i = 0; i < BLOCK; i++) {
+    /* swap the column at index b1*BLOCK + i with the column at index b2*BLOCK + i */
+    swap_cols(a, b1 * BLOCK + i, b2 * BLOCK + i);
+  }
+}
+
+void randomize_solution(int a[N][N]) {
+  for (int it=0; it<50; it++) {
+    int t = rand()%5;
+
+    if (t == 0) { 
+      int band=rand()%BLOCK; 
+      int r1 = band*BLOCK + rand() % BLOCK; 
+      int r2 = band*BLOCK + rand() % BLOCK; 
+      
+      if (r1!=r2) { 
+        swap_rows(a,r1,r2); 
+      }
+    }
+    else if (t == 1) { 
+      int band=rand()%BLOCK; 
+      int c1 = band * BLOCK + rand() % BLOCK; 
+      int c2 = band * BLOCK + rand() % BLOCK; 
+      
+      if (c1 != c2) {
+        swap_cols(a,c1,c2); }
+    }
+    else if (t == 2) { 
+      int b1 = rand() % BLOCK, b2 = rand() % BLOCK; 
+      
+      if (b1 != b2) {
+        swap_row_blocks(a, b1, b2); 
+      }
+    }
+    else if (t == 3) { 
+      int b1 = rand() % BLOCK, b2 = rand() % BLOCK; 
+      
+      if (b1 != b2) {
+        swap_col_blocks(a, b1, b2); 
+      }
+    }
+    else { 
+      if (rand() % 3 == 0) {
+        transpose_board(a); }
+    }
+  }
+}
+
 
 /* generator: remove cells while keeping unique solution */
 void generate_puzzle(int a[N][N], int blanks) {
@@ -380,7 +411,26 @@ int main(int argc, char **argv) {
   for (int i=0;i<N;i++) for (int j=0;j<N;j++) given[i][j] = (board[i][j] != 0);
 
   char line[64];
-  printf("4x4 Sudoku. Perintah: 'baris kolom nilai' (mis: 2 3 4), 'reveal' untuk solusi, 'q' keluar.\n\n");
+
+  // Judul program improvisasi
+  // ? Judul awal
+  printf("=========================\n");
+  printf("|\tSUDOKU 4x4\t|\n");
+  printf("=========================\n");
+  // ? Petunjuk
+  printf("Petunjuk bermain:\n");
+  printf("1. Masukkan dengan format seperti berikut\n"); 
+  printf("\n");
+  printf("   ==> baris, kolom, nilai <==\n\n");
+  printf("   Misalkan: 2 3 4\n");
+  printf("   Baris 2, Kolom 3, dan Nilai 4\n");
+  printf("\n");
+  printf("2. Ketik 'reveal' untuk melihat solusi\n");
+  printf("3. Ketik 'q' untuk keluar\n");
+  printf("\n");
+  // ? judul akhir
+  printf("=== PERMAINAN DIMULAI ===\n");
+  printf("\n");
 
   while (1) {
     print_board(board);
@@ -400,7 +450,7 @@ int main(int argc, char **argv) {
     if (given[r][c]) { printf("Posisi (%d,%d) adalah given. Tidak bisa diubah.\n", br, bc); continue; }
     if (solution[r][c] != v) { printf("Salah. Coba lagi.\n"); continue; }
     board[r][c]=v;
-    printf("Terisi (%d,%d) = %d\n\n", br, bc, v);
+    printf("\nTerisi (%d,%d) = %d\n\n", br, bc, v);
   }
 
   return 0;
