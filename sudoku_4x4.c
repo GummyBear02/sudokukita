@@ -377,7 +377,7 @@ int calculate_score(double elapsed_seconds) {
  * Clear the console screen for Windows.
  */
 void clear_screen() {
-  system("cls");
+  system("clear");
 }
 
 /**
@@ -413,32 +413,28 @@ void launch_in_new_window(int argc, char **argv) {
 
 int main(int argc, char **argv) {
   // Check if we should launch in new window (no --in-window flag)
-  int launch_new_window = 1;
-  for (int i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "--in-window") == 0) {
-      launch_new_window = 0;
-      break;
-    }
-  }
+  // int launch_new_window = 1;
+  // for (int i = 1; i < argc; i++) {
+  //   if (strcmp(argv[i], "--in-window") == 0) {
+  //     launch_new_window = 0;
+  //     break;
+  //   }
+  // }
   
-  // Launch in new window if requested
-  if (launch_new_window) {
-    launch_in_new_window(argc, argv);
-    return 0;
-  }
+  // // Launch in new window if requested
+  // if (launch_new_window) {
+  //   launch_in_new_window(argc, argv);
+  //   return 0;
+  // }
 
-srand( (unsigned)time(NULL) );
+  srand( (unsigned)time(NULL) );
 
   int blanks = 6; /* default */
-  
-  // Parse command line arguments for difficulty level
-  for (int i = 1; i < argc; i++) {
-    if (strcmp(argv[i], "--in-window") != 0) {
-      int v = atoi(argv[i]);
-      if ( v >= 0 && v <= 16 ) {
-        blanks = v;
-        break; // Use first valid number found
-      }
+  if ( argc >= 2 ) {
+    int v = atoi(argv[1]);
+
+    if ( v >= 0 && v <= 16 ) {
+      blanks = v;
     }
   }
 
