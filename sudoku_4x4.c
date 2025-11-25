@@ -391,14 +391,6 @@ void launch_in_new_window(int argc, char **argv) {
     sprintf(args, " %s", argv[1]);
   }
   
-  // Try PowerShell 7+ (pwsh) first
-  if (system("where pwsh >nul 2>&1") == 0) {
-    char command[512];
-    sprintf(command, "start pwsh -Command \"sudoku.exe%s --in-window; Read-Host 'Tekan Enter untuk keluar'\"", args);
-    system(command);
-    return;
-  }
-  
   // Try Windows PowerShell 5.1
   if (system("where powershell >nul 2>&1") == 0) {
     char command[512];
