@@ -22,18 +22,18 @@ void copy_board(int dst[N][N], int src[N][N]) {
   }
 }
 
-/**
- * Prints a 4x4 Sudoku board in a human-readable format.
- * The board is displayed with row and column numbers,
- * and the values are displayed with the given value,
- * or a '.' if the value is 0.
- * A '+' is displayed at the top and bottom of the board,
- * and a '|' is displayed at the end of each row.
- * A '+' is also displayed in the middle of the board,
- * separating the two 2x2 blocks.
- * @param a The 4x4 Sudoku board to print.
- */
-void print_board(int a[N][N]) {
+void print_board(int a[N][N], double elapsed_seconds, int score) {
+  /* 
+   * Print timer and score information
+   */
+  int minutes = (int)(elapsed_seconds) / 60;
+  int seconds = (int)(elapsed_seconds) % 60;
+  printf("=========================\n");
+  printf("|\tSUDOKU 4x4\t|\n");
+  printf("=========================\n");
+  printf("Time: %02d:%02d | Score: %d\n", minutes, seconds, score);
+  printf("=========================\n\n");
+  
   /* 
    * Print the top line of the board, with column numbers.
    * This is the line that will be displayed above the board.
@@ -110,14 +110,6 @@ void print_board(int a[N][N]) {
   return;
 }
 
-/**
- * Check if it's valid to place a value v at position (r,c) on the Sudoku board a.
- * @param a The Sudoku board to check.
- * @param r The row of the position to check.
- * @param c The column of the position to check.
- * @param v The value to check.
- * @return 1 if it's valid, 0 otherwise.
- */
 int is_valid(int a[N][N], int r, int c, int v) {
   // check row
   for (int i=0; i<N; i++) {
@@ -141,25 +133,6 @@ int is_valid(int a[N][N], int r, int c, int v) {
   return 1;
 }
 
-/* 
- * Solve a Sudoku board by counting the number of valid solutions up to a given limit.
- * This function works by making a temporary copy of the Sudoku board,
- * and then calling solve_count_recursive to do the actual counting.
- *
- * The solve_count_recursive function is a recursive function that tries
- * placing each valid value in each empty cell of the board, and then
- * recursively tries to fill in the rest of the board. If the board
- * is completely filled, it increments the solution count.
- *
- * The limit parameter is used to stop counting solutions once we've found
- * the desired number of solutions. This is useful if we only want to know
- * if there is one solution, or if there are multiple solutions.
- *
- * @param board The Sudoku board to count solutions for.
- * @param limit The maximum number of solutions to count.
- * @param count A pointer to an integer that will be incremented for each solution found.
- * @return The number of solutions found, up to limit.
- */
 int solve_count_recursive(int board[N][N], int limit, int *count) {
   if (*count >= limit) return *count;
 
@@ -194,25 +167,6 @@ int solve_count_recursive(int board[N][N], int limit, int *count) {
   return *count;
 }
 
-/**
- * Count the number of solutions to the Sudoku board, up to limit.
- *
- * This function works by making a temporary copy of the Sudoku board,
- * and then calling solve_count_recursive to do the actual counting.
- *
- * The solve_count_recursive function is a recursive function that tries
- * placing each valid value in each empty cell of the board, and then
- * recursively tries to fill in the rest of the board. If the board
- * is completely filled, it increments the solution count.
- *
- * The limit parameter is used to stop counting solutions once we've found
- * the desired number of solutions. This is useful if we only want to know
- * if there is one solution, or if there are multiple solutions.
- *
- * @param a The Sudoku board to count solutions for.
- * @param limit The maximum number of solutions to count.
- * @return The number of solutions found, up to limit.
- */
 int count_solutions(int a[N][N], int limit) {
   int tmp[N][N];
   copy_board(tmp, a);
@@ -223,17 +177,6 @@ int count_solutions(int a[N][N], int limit) {
   return cnt;
 }
 
-/**
- * Swap two rows of the Sudoku board.
- *
- * This function takes two row indices, r1 and r2, and swaps the
- * corresponding rows of the Sudoku board. This transformation does
- * not change the validity of the Sudoku solution.
- *
- * @param a The Sudoku board to modify.
- * @param r1 The index of the first row to swap.
- * @param r2 The index of the second row to swap.
- */
 void swap_rows(int a[N][N], int r1, int r2) {
   for (int c = 0; c < N; c++) { /* loop over all columns */
     int t = a[r1][c]; /* save the value at row r1, col c */
@@ -242,17 +185,6 @@ void swap_rows(int a[N][N], int r1, int r2) {
   }
 }
 
-/**
- * Swap two columns of the Sudoku board.
- *
- * This function takes two column indices, c1 and c2, and swaps the
- * corresponding columns of the Sudoku board. This transformation does
- * not change the validity of the Sudoku solution.
- *
- * @param a The Sudoku board to modify.
- * @param c1 The index of the first column to swap.
- * @param c2 The index of the second column to swap.
- */
 void swap_cols(int a[N][N], int c1, int c2) {
   /* loop over all rows */
   for (int r = 0; r < N; r++) {
@@ -265,16 +197,6 @@ void swap_cols(int a[N][N], int c1, int c2) {
   }
 }
 
-/**
- * Transpose a Sudoku board.
- *
- * This function takes a Sudoku board and transposes it.
- * Transposing a Sudoku board means swapping the rows and columns.
- * The resulting board is a valid Sudoku board, but it is not
- * necessarily a solution to the Sudoku puzzle.
- *
- * @param a The Sudoku board to transpose.
- */
 void transpose_board(int a[N][N]) {
   /* loop over all rows and columns */
   for (int i = 0; i < N; i++) {
@@ -287,24 +209,6 @@ void transpose_board(int a[N][N]) {
   }
 }
 
-/**
- * Swap two blocks of rows in the Sudoku board.
- *
- * This function takes a Sudoku board and two block indices, b1 and b2,
- * and swaps the corresponding blocks of rows in the board. A block
- * of rows is a set of contiguous rows that are the same size
- * as the block size. The block size is defined as a constant
- * BLOCK.
- *
- * For example, if the block size is 2, then the block of rows
- * starting at index 0 consists of the rows at indices 0 and 1.
- * The block of rows starting at index 2 consists of the rows at
- * indices 2 and 3.
- *
- * @param a The Sudoku board to modify.
- * @param b1 The index of the first block of rows to swap.
- * @param b2 The index of the second block of rows to swap.
- */
 void swap_row_blocks(int a[N][N], int b1, int b2) {
   /* loop over each row in the block */
   for (int i = 0 ; i < BLOCK; i++) {
@@ -313,24 +217,6 @@ void swap_row_blocks(int a[N][N], int b1, int b2) {
   }
 }
 
-/**
- * Swap two blocks of columns in the Sudoku board.
- *
- * This function takes a Sudoku board and two block indices, b1 and b2,
- * and swaps the corresponding blocks of columns in the board. A block
- * of columns is a set of contiguous columns that are the same size
- * as the block size. The block size is defined as a constant
- * BLOCK.
- *
- * For example, if the block size is 2, then the block of columns
- * starting at index 0 consists of the columns at indices 0 and 1.
- * The block of columns starting at index 2 consists of the columns at
- * indices 2 and 3.
- *
- * @param a The Sudoku board to modify.
- * @param b1 The index of the first block of columns to swap.
- * @param b2 The index of the second block of columns to swap.
- */
 void swap_col_blocks(int a[N][N], int b1, int b2) {
   /* loop over each column in the block */
   for (int i = 0; i < BLOCK; i++) {
@@ -339,13 +225,6 @@ void swap_col_blocks(int a[N][N], int b1, int b2) {
   }
 }
 
-/**
- * Randomly transforms a Sudoku solution in order to generate a new unique solution.
- * The transformations used are row swaps, column swaps, block swaps of rows, block swaps of columns, and transposing the board.
- * This function is used to generate a new unique solution to the Sudoku puzzle.
- * The number of transformations is fixed to 50.
- * @param a The Sudoku solution to be transformed.
- */
 void randomize_solution(int a[N][N]) {
   for (int it=0; it<50; it++) {
     int t = rand()%5;
@@ -414,13 +293,6 @@ void randomize_solution(int a[N][N]) {
   }
 }
 
-/**
- * Generate a Sudoku puzzle by removing cells from a full solution while keeping a unique solution.
- * The function takes a Sudoku board and a number of blanks, and removes cells from the board
- * while ensuring that the resulting board has a unique solution.
- * @param a The Sudoku board to modify.
- * @param blanks The number of blanks to remove from the board.
- */
 void generate_puzzle(int a[N][N], int blanks) {
   /* initialize an array of positions to shuffle */
   int pos[16];
@@ -474,18 +346,6 @@ void generate_puzzle(int a[N][N], int blanks) {
   }
 }
 
-/**
- * Check if a Sudoku board is full.
- *
- * This function takes a Sudoku board and checks if all
- * cells are filled. If any cell is empty (i.e. its value
- * is 0), then the function returns 0, indicating that the
- * board is not full. Otherwise, the function returns 1,
- * indicating that the board is full.
- *
- * @param a The Sudoku board to check.
- * @return 1 if the board is full, 0 otherwise.
- */
 int is_full(int a[N][N]) {
   /* loop over all rows and columns */
   for ( int i = 0; i < N; i++ ) {
@@ -502,24 +362,73 @@ int is_full(int a[N][N]) {
 }
 
 /**
- * Main program for SudokuKita.
- *
- * This program takes a Sudoku board, randomly transforms it
- * to create a new unique solution, and then generates a puzzle
- * from that solution by removing some of the values.
- *
- * The program then enters an interactive loop where the user can
- * input values for the puzzle, and the program will check if
- * the values are correct and update the board accordingly.
- *
- * The program also allows the user to input 'reveal' to see the
- * solution, or 'q' to quit the program.
- *
- * @param argc The number of command-line arguments.
- * @param argv The command-line arguments.
- * @return The exit status of the program.
+ * Calculate score based on elapsed time using time-based formula.
+ * Base score decreases over time - faster completion = higher score.
+ * @param elapsed_seconds Time taken in seconds
+ * @return Calculated score
  */
+int calculate_score(double elapsed_seconds) {
+  int base_score = 1000;
+  int time_penalty = (int)(elapsed_seconds * 2); // 2 points per second
+  return base_score - time_penalty;
+}
+
+/**
+ * Clear the console screen for Windows.
+ */
+void clear_screen() {
+  system("cls");
+}
+
+/**
+ * Launch Sudoku game in new window using PowerShell with fallback chain.
+ * Tries pwsh first, then powershell, then cmd as final fallback.
+ */
+void launch_in_new_window(int argc, char **argv) {
+  // Build command line arguments string
+  char args[256] = "";
+  if (argc > 1) {
+    sprintf(args, " %s", argv[1]);
+  }
+  
+  // Try PowerShell 7+ (pwsh) first
+  if (system("where pwsh >nul 2>&1") == 0) {
+    char command[512];
+    sprintf(command, "start pwsh -Command \"sudoku.exe%s --in-window; Read-Host 'Tekan Enter untuk keluar'\"", args);
+    system(command);
+    return;
+  }
+  
+  // Try Windows PowerShell 5.1
+  if (system("where powershell >nul 2>&1") == 0) {
+    char command[512];
+    sprintf(command, "start powershell -Command \"sudoku.exe%s --in-window; Read-Host 'Tekan Enter untuk keluar'\"", args);
+    system(command);
+    return;
+  }
+  
+  // Final fallback to cmd
+  char command[512];
+  sprintf(command, "start cmd /k sudoku.exe%s --in-window", args);
+  system(command);
+}
+
 int main(int argc, char **argv) {
+  // Check if we should launch in new window (no --in-window flag)
+  int launch_new_window = 1;
+  for (int i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "--in-window") == 0) {
+      launch_new_window = 0;
+      break;
+    }
+  }
+  
+  // Launch in new window if requested
+  if (launch_new_window) {
+    launch_in_new_window(argc, argv);
+    return 0;
+  }
+
   srand( (unsigned)time(NULL) );
 
   int blanks = 6; /* default */
@@ -547,6 +456,11 @@ int main(int argc, char **argv) {
     }
   }
 
+  // Initialize timer
+  clock_t start_time = clock();
+  double elapsed_seconds = 0;
+  int score = 0;
+
   char line[64];
 
   // Judul program improvisasi
@@ -562,19 +476,38 @@ int main(int argc, char **argv) {
   printf("   Misalkan: 2 3 4\n");
   printf("   Baris 2, Kolom 3, dan Nilai 4\n");
   printf("\n");
-  printf("2. Ketik 'reveal' untuk melihat solusi\n");
+printf("2. Ketik 'reveal' untuk melihat solusi\n");
   printf("3. Ketik 'q' untuk keluar\n");
   printf("\n");
   // ? judul akhir
   printf("=== PERMAINAN DIMULAI ===\n");
   printf("\n");
+  
+  // Wait for user to start the game
+  printf("Tekan Enter untuk memulai permainan...");
+  getchar();
+  
+  char message[256] = ""; // Store messages to display between refreshes
 
   while (1) {
-    printf("\n=== ========== ===\n\n");
-    print_board(board);
+    // Calculate elapsed time and score
+    elapsed_seconds = (double)(clock() - start_time) / CLOCKS_PER_SEC;
+    score = calculate_score(elapsed_seconds);
+    
+// Clear screen and refresh display
+    clear_screen();
+    
+    print_board(board, elapsed_seconds, score);
+    
+    // Display any pending messages
+    if (strlen(message) > 0) {
+      printf("%s\n", message);
+      message[0] = '\0'; // Clear message after displaying
+    }
 
     if (is_full(board)) {
       printf("Selamat! Selesai.\n");
+      printf("Final Time: %.2f seconds | Final Score: %d\n", elapsed_seconds, score);
       break;
     }
 
@@ -589,14 +522,14 @@ int main(int argc, char **argv) {
       line[--len] = 0;
     }
 
-    if (strcmp(line,"q") == 0 || strcmp(line,"quit") == 0) {
+if (strcmp(line,"q") == 0 || strcmp(line,"quit") == 0) {
       printf("\n\nKeluar.\n");
       break;
     }
 
-    if (strcmp(line,"reveal") == 0 || strcmp(line,"r") == 0) {
+if (strcmp(line,"reveal") == 0 || strcmp(line,"r") == 0) {
       printf("\n=== SOLUSI ===\n\n");
-      print_board(solution);
+      print_board(solution, elapsed_seconds, score);
       break;
     }
 
@@ -604,29 +537,29 @@ int main(int argc, char **argv) {
     int n = sscanf(line, "%d %d %d", &br, &bc, &bv);
 
     if (n != 3) {
-      printf("\nFormat salah. Contoh: 2 3 4\n");
+      sprintf(message, "Format salah. Contoh: 2 3 4");
       continue;
     }
 
     if (br < 1 || br > 4 || bc < 1 || bc > 4 || bv < 1 || bv > 4) {
-      printf("\nNilai harus 1 hingga 4.\n");
+      sprintf(message, "Nilai harus 1 hingga 4");
       continue;
     }
 
-    int r = br - 1, c = bc - 1, v = bv;
+int r = br - 1, c = bc - 1, v = bv;
     if (given[r][c]) {
-      printf("\nPosisi (%d,%d) adalah given. Tidak bisa diubah.\n\n", br, bc);
+      sprintf(message, "Posisi (%d,%d) adalah given. Tidak bisa diubah.", br, bc);
       continue;
     }
 
     if (solution[r][c] != v) {
-      printf("\nSalah. Coba lagi.\n");
+      sprintf(message, "Salah. Coba lagi.");
       continue;
     }
 
-    board[r][c] = v;
+board[r][c] = v;
 
-    printf("\nTerisi (%d,%d) = %d\n", br, bc, v);
+    sprintf(message, "Terisi (%d,%d) = %d", br, bc, v);
   }
 
   return 0;
