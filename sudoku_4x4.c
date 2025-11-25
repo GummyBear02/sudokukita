@@ -390,11 +390,25 @@ void launch_in_new_window(int argc, char **argv) {
   if (argc > 1) {
     sprintf(args, " %s", argv[1]);
   }
- 
+  
+  // Try PowerShell 7+ (pwsh) first
+  if (system("where pwsh >nul 2>&1") == 0) {
+    char command[512];
+    sprintf(command, "start pwsh -Command \"sudoku.exe%s --in-window; Read-Host 'Tekan Enter untuk keluar'\"", args);
+    system(command);
+    return;
+  }
+  // Try Windows PowerShell 5.1
+  else if (system("where powershell >nul 2>&1") == 0) {
+    char command[512];
+    sprintf(command, "start powershell -Command \"sudoku.exe%s --in-window; Read-Host 'Tekan Enter untuk keluar'\"", args);
+    system(command);
+    return;
+  }
+  
   // Final fallback to cmd
   char command[512];
   sprintf(command, "start cmd /k sudoku.exe%s --in-window", args);
-  system(command);
 }
 
 int main(int argc, char **argv) {
